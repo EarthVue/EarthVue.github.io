@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="EarthVue: IEEE VIS 2026 supplemental - a walkthrough of provenance-centered visual analytics for AI-assisted Earth science."
+    />
+    <title>EarthVue - IEEE VIS 2026 Supplemental</title>
+    <link rel="stylesheet" href="css/vis2026-supplemental.css" />
+    <link rel="icon" href="docs/earthlogo.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div id="read-progress" class="read-progress" aria-hidden="true"></div>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-nav">
+      <a class="site-brand" href="#top">
+        <img src="docs/earthlogo.svg" width="36" height="36" alt="" />
+        EarthVue
+      </a>
+      <nav class="nav-links" aria-label="Story sections">
+        <a href="#abstract">Abstract</a>
+        <a href="#challenge">Motivation</a>
+        <a href="#formative">Study</a>
+        <a href="#interface">Interface</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="#architecture">Design</a>
+        <a href="#case-study">Case study</a>
+        <a href="#evaluation">Evaluation</a>
+        <a href="#expert-feedback">Experts</a>
+        <a href="#outlook">Outlook</a>
+        <a href="#supplemental">Supplemental</a>
+      </nav>
+      <div class="nav-actions">
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="top" class="hero">
+        <div class="hero-inner">
+          <span class="hero-badge">IEEE VIS 2026 · Supplemental material</span>
+          <h1>
+            EarthVue: Visualizing Provenance, Reasoning, and Uncertainty in AI-Assisted Earth Science Analysis
+          </h1>
+          <p class="hero-lead">
+            This supplemental site summarizes the manuscript: motivations for inspectable AI-assisted analysis in Earth
+            science, formative design requirements, the EarthVue interface and system architecture, benchmark evaluation,
+            qualitative expert feedback, limitations, and supplemental materials.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#abstract">Start with the abstract</a>
+            <a class="btn btn-ghost" href="#challenge">Skip to motivation</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="abstract" class="section story-chapter">
+        <p class="chapter-kicker">Overview</p>
+        <div class="section-head">
+          <h2>Abstract</h2>
+        </div>
+        <div class="card story-prose">
+          <div class="abstract-text">
+            <p>
+              The growing scale and heterogeneity of Earth system data, combined with the increasing use of specialized AI
+              models, have begun to outpace traditional analysis workflows. As a result, researchers often rely on opaque
+              AI tools and general-purpose agentic systems, making it difficult to understand what data informed a result,
+              what assumptions were made, and how conclusions were reached.
+            </p>
+            <p>
+              We present EarthVue, a provenance-centered visual analytics system for AI-assisted Earth science workflows.
+              It integrates retrieval-grounded language models with executable analysis and coordinated views that expose
+              intermediate artifacts, including retrieved evidence, generated code, execution outputs, reasoning traces,
+              bias assessments, and uncertainty signals. EarthVue also incorporates a dynamic semantic knowledge graph that
+              captures relationships among datasets, variables, models, and user intents, enabling users to understand both
+              how results are produced and how domain concepts relate.
+            </p>
+            <p>
+              We ground the design in a formative study with 13 Earth science researchers and evaluate the system using a
+              benchmark of 45 climate analytics tasks and preliminary expert feedback. Results provide initial evidence that
+              EarthVue supports transparency and trust in AI-assisted scientific analysis.
+            </p>
+          </div>
+          <p class="index-terms">
+            <strong>Index Terms</strong> - Agentic AI, Provenance Graph, Transparent Reasoning, Knowledge Graph
+          </p>
+        </div>
+      </section>
+
+      <section id="challenge" class="section story-chapter">
+        <p class="chapter-kicker">Introduction</p>
+        <div class="section-head">
+          <h2>Why Earth science needs inspectable AI workflows</h2>
+          <p>
+            Earth science is less often limited by missing data than by the difficulty of turning large, heterogeneous
+            archives into validated insight. Dashboards, notebooks, and cloud archives improve access, yet many workflows
+            still demand expertise in dataset conventions, query languages, and brittle interfaces.
+          </p>
+        </div>
+        <div class="card story-prose">
+          <p>
+            Large language models and agentic systems suggest a new pattern: describe an analysis in natural language and
+            receive code, plots, and summaries. In practice, the path from prompt to output often hides which datasets or
+            metadata shaped the answer, whether the result can be reproduced, and how much confidence is warranted. When
+            intermediate steps appear only as logs or prose, the relationships between evidence, reasoning, and execution
+            stay hard to parse - especially because those relationships are not linear.
+          </p>
+          <p>
+            <strong>EarthVue</strong> responds by treating AI-assisted analysis as an explicit process: queries, retrieved
+            evidence, reasoning steps, generated code, execution outputs, and evaluation signals are linked in a
+            provenance-centered artifact graph, alongside a knowledge graph that relates datasets, variables, models, and
+            user intents. The goal is not a prettier chat window, but <em>inspectability</em> - so users can trace
+            dependencies, surface hidden assumptions, and reason about uncertainty and bias.
+          </p>
+        </div>
+      </section>
+
+      <section id="formative" class="section story-chapter">
+        <p class="chapter-kicker">Formative study</p>
+        <div class="section-head">
+          <h2>Formative design study (n = 13)</h2>
+          <p>
+            Before building EarthVue, we ran a structured design study - not to evaluate the system, but to learn workflow
+            bottlenecks, unmet needs, and trust requirements that should shape the design.
+          </p>
+        </div>
+        <p class="story-prose-inline">
+          Thirteen Earth science researchers and domain experts from NASA JPL, Caltech, and UCLA answered 12 questions
+          across four themes: current workflow challenges, prior experience with AI tools, desired AI capabilities, and
+          trust and human-in-the-loop needs. For several questions, participants could select up to two options (see the
+          figure below). A recurring theme was that people want AI assistance for their domain work only when it
+          preserves scientific traceability, user oversight, and access to intermediate analytical state.
+        </p>
+        <p class="story-prose-inline">
+          In parallel, their concerns clustered around scientific traceability, fabricated or ungrounded outputs, and
+          validation - not just model accuracy. They wanted uncertainty communicated with concrete metrics and intermediate
+          artifacts, and they often paired exploratory analysis with reasoning visualization, preprocessing, and sharing
+          results with colleagues.
+        </p>
+        <blockquote class="expert-quote">
+          <p>I spend a lot of time iteratively revising code so that it accomplishes a certain desired task.</p>
+          <footer>- Formative study participant (workflow bottlenecks)</footer>
+        </blockquote>
+        <p class="story-prose-inline">
+          On trust, participants associated confidence with explicit links to datasets and publications, visible
+          reasoning, clear uncertainty communication, and the ability to override the system - as the paper puts it,
+          trust is established not by presenting AI outputs as authoritative, but by exposing supporting evidence,
+          retrieved knowledge, and associated uncertainties.
+        </p>
+        <figure class="paper-figure card paper-figure--lead">
+          <div class="paper-figure-img-wrap">
+            <img
+              src="docs/overleaf/figs/agentic_req.png"
+              alt="Formative study: concerns about agentic AI, preferred uncertainty modalities, and co-selected capabilities"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <figcaption>
+            Trustworthy agentic workflows: (a) top concerns, (b) preferred uncertainty communication modalities, (c)
+            pairwise co-selection of desired capabilities (up to two options per question).
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="interface" class="section story-chapter">
+        <p class="chapter-kicker">The interface</p>
+        <div class="section-head">
+          <h2>Coordinated views on one analytical story</h2>
+          <p>
+            EarthVue does not collapse the workflow into a single transcript. It coordinates chat, reasoning traces, a
+            provenance graph, and a knowledge graph so that the same analysis can be read as a conversation, as a sequence of
+            inferred steps, as dependencies among artifacts, and as relationships among domain entities.
+          </p>
+        </div>
+        <figure class="paper-figure card">
+          <div class="paper-figure-img-wrap">
+            <img
+              src="docs/overleaf/figs/vis2026-teaser.png"
+              alt="EarthVue: chat, reasoning traces, provenance graph, and knowledge graph in one workspace"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <figcaption>
+            The reasoning panel surfaces intermediate steps with confidence cues; the provenance graph connects queries,
+            datasets, tools, and evaluation signals; the knowledge graph encodes semantic ties among datasets, variables,
+            and entities. Together they support tracing the full pipeline from query to evaluation.
+          </figcaption>
+        </figure>
+        <div class="story-columns">
+          <div class="story-column">
+            <h3 class="story-h3">Chat</h3>
+            <p>
+              The entry point for natural-language analysis, wired to retrieval and execution so answers remain tied to
+              session state and evidence.
+            </p>
+          </div>
+          <div class="story-column">
+            <h3 class="story-h3">Reasoning traces</h3>
+            <p>
+              Intermediate steps and confidence cues so users see how conclusions are reached - not only the final narrative.
+            </p>
+          </div>
+          <div class="story-column">
+            <h3 class="story-h3">Provenance graph</h3>
+            <p>
+              A directed view of artifacts and dependencies: evidence, code, execution, evaluation, and how they feed the
+              response.
+            </p>
+          </div>
+          <div class="story-column">
+            <h3 class="story-h3">Knowledge graph</h3>
+            <p>
+              Semantic relationships among datasets, variables, models, and locations, complementing procedural provenance.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="pipeline" class="section story-chapter">
+        <p class="chapter-kicker">Model of analysis</p>
+        <div class="section-head">
+          <h2>The pipeline as inspectable stages</h2>
+          <p>
+            The paper treats AI-assisted science as query - evidence retrieval - code generation - execution - evaluation.
+            Each stage emits artifacts that can be examined. Use the steps below to see what becomes visible at each point.
+          </p>
+        </div>
+        <div class="pipeline-wrap">
+          <div class="pipeline-steps" role="group" aria-label="Pipeline stages">
+            <button type="button" class="pipeline-step" data-step="1" aria-pressed="true">
+              <span class="step-num">1</span>
+              <span class="step-body">
+                <strong>Query</strong>
+                <span>Natural-language intent</span>
+              </span>
+            </button>
+            <button type="button" class="pipeline-step" data-step="2" aria-pressed="false">
+              <span class="step-num">2</span>
+              <span class="step-body">
+                <strong>Evidence retrieval</strong>
+                <span>Grounding context</span>
+              </span>
+            </button>
+            <button type="button" class="pipeline-step" data-step="3" aria-pressed="false">
+              <span class="step-num">3</span>
+              <span class="step-body">
+                <strong>Code generation</strong>
+                <span>Reviewable artifacts</span>
+              </span>
+            </button>
+            <button type="button" class="pipeline-step" data-step="4" aria-pressed="false">
+              <span class="step-num">4</span>
+              <span class="step-body">
+                <strong>Execution</strong>
+                <span>Sandboxed runs</span>
+              </span>
+            </button>
+            <button type="button" class="pipeline-step" data-step="5" aria-pressed="false">
+              <span class="step-num">5</span>
+              <span class="step-body">
+                <strong>Evaluation</strong>
+                <span>Uncertainty &amp; bias cues</span>
+              </span>
+            </button>
+          </div>
+          <div class="card pipeline-detail" id="pipeline-detail" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section id="architecture" class="section story-chapter">
+        <p class="chapter-kicker">System architecture</p>
+        <div class="section-head">
+          <h2>End-to-end workflow in the implementation</h2>
+          <p>
+            A conversation orchestrator routes queries through retrieval and grounding, LLM reasoning, and sandboxed
+            execution via a shared tool layer (EarthVue-MCP). A shared data layer holds the dataset registry, embeddings,
+            and storage. After the response, evaluation produces quality, uncertainty, and bias signals that sit alongside
+            retrieved context, code, and execution records - feeding both the provenance graph and the knowledge graph in the
+            UI.
+          </p>
+        </div>
+        <figure class="paper-figure card">
+          <div class="paper-figure-img-wrap">
+            <img
+              src="docs/overleaf/figs/vis2026_architecture.png"
+              alt="Architecture: orchestrator, retrieval, LLM, sandbox, EarthVue-MCP, data layer, evaluation"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <figcaption>
+            End-to-end data and control flow from the web client through orchestration, grounding, reasoning, execution,
+            and post-response evaluation, with persistent records that back the dual-graph interface.
+          </figcaption>
+        </figure>
+
+        <h3 class="story-h3 story-h3-spaced">Provenance graph</h3>
+        <p class="story-prose-inline">
+          Provenance is exposed as an artifact graph, not buried in logs. Nodes correspond to retrieved context, tool use,
+          dataset logic, analytical steps, evaluation, and linked quality signals; edges encode dependencies so users can
+          follow branches and failures that may sit far from the final answer.
+        </p>
+        <figure class="paper-figure card">
+          <div class="paper-figure-img-wrap">
+            <img
+              src="docs/overleaf/figs/provenance.png"
+              alt="Provenance graph connecting context, tools, datasets, and evaluation to the final answer"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <figcaption>
+            Layered workflow view from query to response: how evidence, tools, execution, and assessment connect.
+          </figcaption>
+        </figure>
+
+        <h3 class="story-h3 story-h3-spaced">Knowledge graph</h3>
+        <p class="story-prose-inline">
+          While provenance captures <em>how</em> a result is produced, the knowledge graph captures <em>what</em> entities
+          are involved - queries, datasets, variables, models, locations - and how they relate across sessions, with
+          normalization and validation over extracted triples.
+        </p>
+        <figure class="paper-figure card">
+          <div class="paper-figure-img-wrap">
+            <img
+              src="docs/overleaf/figs/KG.png"
+              alt="Knowledge graph with queries, datasets, variables, and locations as nodes"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <figcaption>
+            Semantic relationships such as usage and requests, supporting navigation between workflow structure and domain
+            concepts.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="case-study" class="section story-chapter">
+        <p class="chapter-kicker">Case study</p>
+        <div class="section-head">
+          <h2>Strait of Gibraltar: when the visualization looks right</h2>
+          <p>
+            We walk through ocean temperature near the Strait of Gibraltar using natural language: the system retrieves
+            data, generates code, and returns a 2D slice and a 3D volume. The renderings can look plausible even when
+            subtle preprocessing - such as clamping an out-of-range spatial bound - changes the region of interest. That kind of
+            adjustment rarely appears in the image itself; it shows up in reasoning traces, session-level signals, and bias
+            panels.
+          </p>
+        </div>
+        <figure class="paper-figure card">
+          <div class="paper-figure-row">
+            <div class="paper-figure-img-wrap">
+              <img
+                src="docs/overleaf/figs/2D_agulhas.png"
+                alt="2D slice of ocean potential temperature"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="paper-figure-img-wrap">
+              <img
+                src="docs/overleaf/figs/3D_agulhas.png"
+                alt="3D volume rendering of ocean potential temperature"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+          <figcaption>
+            EarthVue-generated 2D slice (left) and 3D volume (right) for potential temperature - plausible visuals that
+            still depend on intermediate bounds and metadata choices made upstream.
+          </figcaption>
+        </figure>
+        <figure class="paper-figure card">
+          <div class="paper-figure-img-wrap">
+            <img
+              src="docs/overleaf/figs/agul-session.png"
+              alt="Session overview: confidence, uncertainty, bias, and reasoning summary"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <figcaption>
+            Session overview for this query: overall confidence, uncertainty and bias signals, and a condensed view of
+            reasoning steps for judging reliability at a glance.
+          </figcaption>
+        </figure>
+        <figure class="paper-figure card">
+          <div class="paper-figure-img-wrap">
+            <img
+              src="docs/overleaf/figs/agul-bias.png"
+              alt="Bias panel flagging geographic interpretation risk"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <figcaption>
+            Bias detection highlights when index-to-geography mapping is unverified - prompting users to confirm the
+            extracted region matches their intent.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="evaluation" class="section story-chapter">
+        <p class="chapter-kicker">Results</p>
+        <div class="section-head">
+          <h2>Benchmark: 45 climate analytics tasks</h2>
+          <p>
+            We evaluate whether the full stack - retrieval, code generation, execution, and evaluation - can produce correct
+            results within task-specific tolerances across categories from data access and summary statistics to regional,
+            comparative, temporal, and multi-model analysis. Failures are revisited through provenance: incorrect cases
+            often trace back to dimensional interpretation or aggregation logic visible in traces and execution artifacts.
+          </p>
+        </div>
+        <figure class="paper-figure card">
+          <div class="paper-figure-row">
+            <div class="paper-figure-img-wrap">
+              <img
+                src="docs/overleaf/figs/category_accuracy.png"
+                alt="Accuracy by benchmark category"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="paper-figure-img-wrap">
+              <img
+                src="docs/overleaf/figs/complexity_performance.png"
+                alt="Accuracy by operational complexity"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+          <figcaption>
+            Accuracy within tolerance by task category (left) and by operational complexity (right). Counts above bars are
+            correct over total tasks per category; the paper discusses where errors concentrate and why inspectability
+            matters even for “simple” requests.
+          </figcaption>
+        </figure>
+        <p class="story-prose-inline story-prose-continued">
+          Qualitative feedback from domain experts after walkthroughs of EarthVue is summarized in the
+          <a href="#expert-feedback">next section</a>.
+        </p>
+      </section>
+
+      <section id="expert-feedback" class="section story-chapter">
+        <p class="chapter-kicker">Expert voices</p>
+        <div class="section-head">
+          <h2>After walkthroughs of EarthVue</h2>
+          <p>
+            The paper reports preliminary qualitative feedback from domain users who walked through EarthVue individually.
+            Design goals from the
+            <a href="#formative">formative study</a>
+            show up again here: traceability, inspectable intermediates, and honest communication of uncertainty - not
+            blind trust in model output.
+          </p>
+        </div>
+
+        <h3 class="story-h3">What stood out</h3>
+        <p class="story-prose-inline">
+          We collected feedback from several domain users after individual walkthroughs. Everyone singled out
+          provenance-oriented views as especially valuable: they described a clear path from natural-language intent to
+          intermediate steps and final outputs, and two participants specifically called out the provenance graph and
+          reasoning panels as uncommon and useful for trusting and debugging results.
+        </p>
+
+        <div class="quote-grid">
+          <blockquote class="expert-quote">
+            <p>
+              Being able to follow the reasoning behind an answer makes it much easier to trust and understand what’s
+              going on.
+            </p>
+            <footer>- Walkthrough participant</footer>
+          </blockquote>
+          <blockquote class="expert-quote">
+            <p>
+              The system helps “quickly explore and analyze large Earth science datasets” and “lowers the barrier for
+              non-experts.”
+            </p>
+            <footer>- Walkthrough participant</footer>
+          </blockquote>
+          <blockquote class="expert-quote">
+            <p>It “lowers the bars for people to access the data.”</p>
+            <footer>- Walkthrough participant</footer>
+          </blockquote>
+          <blockquote class="expert-quote">
+            <p>
+              Another highlighted the “provenance tracking decision track” as helpful for understanding how the system
+              reaches a conclusion.
+            </p>
+            <footer>- Walkthrough participant</footer>
+          </blockquote>
+        </div>
+
+        <h3 class="story-h3 story-h3-spaced">What experts asked to improve</h3>
+        <p class="story-prose-inline">
+          Participants also surfaced design tensions that match the paper’s discussion of limitations. Several themes
+          came up repeatedly:
+        </p>
+        <ul class="feedback-themes">
+          <li>
+            <strong>Onboarding and cognitive load.</strong> One user noted the interface can be “overwhelming for some
+            naive users,” pointing to a need for views that align better with expertise level.
+          </li>
+          <li>
+            <strong>Long-running work.</strong> Another asked for clearer progress feedback during long operations:
+            “showing more detailed progression (internal steps) would be helpful.”
+          </li>
+          <li>
+            <strong>Uncertainty and confidence.</strong> Experts asked how uncertainty should be read for more
+            deterministic-looking tasks, and how confidence scores are computed - highlighting the need for clearer
+            communication, not just more metrics.
+          </li>
+        </ul>
+      </section>
+
+      <section id="outlook" class="section story-chapter">
+        <p class="chapter-kicker">Conclusion</p>
+        <div class="section-head">
+          <h2>Contributions and limitations</h2>
+          <p>
+            EarthVue does not make AI outputs automatically trustworthy; it makes the analytical process legible so
+            users can assess evidence, reproduction, and risk. Trust remains a human judgment, supported by structured
+            provenance, execution visibility, and evaluation signals - not replaced by them.
+          </p>
+        </div>
+        <ul class="contrib-list">
+          <li>
+            <strong>Provenance-centered paradigm</strong>
+            AI-driven analysis as linked artifacts across query, evidence, reasoning, code, execution, and evaluation - with
+            a provenance graph for tracing and revision.
+          </li>
+          <li>
+            <strong>Dual graphs</strong>
+            Provenance for procedural dependencies; knowledge graph for semantic relationships among entities in the
+            domain.
+          </li>
+          <li>
+            <strong>Coordinated inspection</strong>
+            Reasoning traces, uncertainty, and bias cues aligned with analytical tasks, evaluated on the benchmark and
+            with expert feedback.
+          </li>
+        </ul>
+        <div class="card story-prose story-prose-tight">
+          <p>
+            Grounding can still be fragile when retrieval only partially aligns with a query; post-hoc evaluation adds
+            latency and cost; uncertainty and bias cues are prompts for inspection, not ground truth. Executable analysis
+            improves transparency but surfaces new failure modes - dependency and runtime errors - that the interface must make
+            visible. These trade-offs motivate continued work on selective evaluation and calibration.
+          </p>
+        </div>
+      </section>
+
+      <section id="supplemental" class="section story-chapter">
+        <p class="chapter-kicker">IEEE VIS supplemental</p>
+        <div class="section-head">
+          <h2>Supplemental materials</h2>
+
+        </div>
+        <div class="card story-prose">
+          <ul class="supp-file-list">
+            <li>
+              <strong>Supplemental PDF.</strong>
+              <a href="docs/1775-Sup/Supplemental-pdf.pdf">Supplemental-pdf.pdf</a>
+            </li>
+            <li>
+              <strong>Overview video.</strong>
+              <a href="docs/1775-Sup/EarthVue-Overview.mp4">EarthVue-Overview.mp4</a>
+            </li>
+            <li>
+              <strong>Implementation (zip).</strong>
+              <a href="docs/1775-Sup/EarthVue-public.zip" download>EarthVue-public.zip</a>
+              (extract and follow the included README for setup).
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Supplemental walkthrough for IEEE VIS. EarthVue - provenance-centered visual analytics for Earth science.
+      </p>
+      <p>
+        <a href="https://github.com/EarthVue/EarthVue.github.io">GitHub repository</a>
+      </p>
+      <p class="site-footer-note">
+        <strong>Note.</strong> This website was produced with AI-assisted authoring and coding tools; manuscript content
+        and claims follow the associated IEEE VIS submission.
+      </p>
+    </footer>
+
+    <script src="js/vis2026-supplemental.js" defer></script>
+  </body>
+</html>
